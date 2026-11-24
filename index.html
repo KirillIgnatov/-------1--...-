@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Беговая неделя</title>
+  <style>
+    :root {
+      --ink: #1a2e1c;
+      --ink-soft: #445847;
+      --paper: rgba(255, 249, 239, 0.94);
+      --line: rgba(90, 68, 28, 0.22);
+      --gold: #8d6730;
+      --gold-deep: #6d4c1c;
+      --field: #163222;
+      --zone2: #1f3a63;
+      --intense: #6b1c2a;
+      --strip-a: #ece7dc;
+      --strip-b: #e1ebe4;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: "Segoe UI", "Helvetica Neue", sans-serif;
+      background:
+        linear-gradient(180deg, rgba(14, 36, 22, 0.42), rgba(14, 36, 22, 0.22)),
+        url("assets/field.jpg") center / cover no-repeat fixed,
+        var(--field);
+    }
+
+    .wrap {
+      width: min(960px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 36px 0 56px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-family: Palatino, "Palatino Linotype", "Book Antiqua", Georgia, serif;
+      font-weight: 500;
+      font-size: clamp(40px, 6vw, 64px);
+      letter-spacing: 0.01em;
+      color: #f6f1e4;
+      text-shadow: 0 2px 18px rgba(8, 20, 12, 0.45);
+    }
+
+    header p {
+      margin: 8px 0 0;
+      max-width: 36em;
+      color: rgba(246, 241, 228, 0.86);
+      font-size: 17px;
+      line-height: 1.45;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin: 28px 0 16px;
+    }
+
+    .tabs button {
+      appearance: none;
+      border: 1px solid rgba(246, 241, 228, 0.35);
+      background: rgba(12, 28, 18, 0.28);
+      color: #f6f1e4;
+      font: inherit;
+      font-size: 15px;
+      padding: 8px 16px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+
+    .tabs button[aria-selected="true"] {
+      background: var(--paper);
+      color: var(--ink);
+      border-color: transparent;
+    }
+
+    .panel {
+      background: var(--paper);
+      border-radius: 22px;
+      padding: 22px;
+      box-shadow: 0 18px 50px rgba(8, 20, 12, 0.28);
+    }
+
+    .panel[hidden] { display: none; }
+
+    label {
+      display: block;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--gold-deep);
+      margin-bottom: 8px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      max-width: 280px;
+      font: inherit;
+      font-size: 28px;
+      color: var(--ink);
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid var(--line);
+      border-radius: 0;
+      padding: 4px 0 8px;
+    }
+
+    .settings input[type="text"] {
+      font-size: 20px;
+      max-width: 240px;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-bottom-color: var(--gold);
+    }
+
+    .message {
+      min-height: 1.4em;
+      margin: 14px 0 0;
+      color: var(--ink-soft);
+    }
+
+    .message.error { color: #8a341f; }
+
+    .cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      background: rgba(255, 252, 246, 0.78);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .day {
+      margin: 0;
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--gold-deep);
+    }
+
+    .card h2 {
+      margin: 2px 0 0;
+      font-family: Palatino, "Palatino Linotype", Georgia, serif;
+      font-size: 26px;
+      font-weight: 500;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 14px;
+      margin: 2px 0 0;
+      color: var(--ink-soft);
+      font-size: 14px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .meta-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .meta-item svg {
+      width: 15px;
+      height: 15px;
+      flex: none;
+    }
+
+    .strip {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px 10px;
+      margin: 0;
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-size: 15px;
+      line-height: 1.35;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .strip-pace { background: var(--strip-a); }
+    .strip-dist { background: var(--strip-b); }
+
+    .seg {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      flex: none;
+    }
+
+    .dot-z2 { background: var(--zone2); }
+    .dot-intense { background: var(--intense); }
+
+    .plus {
+      color: rgba(26, 46, 28, 0.35);
+      font-weight: 500;
+      user-select: none;
+    }
+
+    .rest {
+      width: 100%;
+      margin: -2px 0 0;
+      color: var(--ink-soft);
+      font-size: 13px;
+    }
+
+    .totals {
+      margin-top: 18px;
+      border-top: 1px solid var(--line);
+      padding-top: 16px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .totals:empty { display: none; }
+
+    .total-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .total-row .label {
+      color: var(--ink-soft);
+      min-width: 7.5em;
+    }
+
+    .total-row .value {
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+    }
+
+    .settings {
+      display: grid;
+      gap: 18px;
+    }
+
+    .settings button {
+      justify-self: start;
+      appearance: none;
+      border: 1px solid var(--gold);
+      background: transparent;
+      color: var(--gold-deep);
+      font: inherit;
+      font-size: 15px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+
+    .settings button:hover { background: rgba(141, 103, 48, 0.08); }
+
+    @media (max-width: 720px) {
+      .cards { grid-template-columns: 1fr; }
+      .wrap { width: min(960px, calc(100% - 20px)); }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Беговая неделя</h1>
+      <p>Одно число — километры на неделю. Четыре дня собираются сами: интервалы, восстановление, темп и длительный.</p>
+    </header>
+
+    <div class="tabs" role="tablist">
+      <button type="button" id="tab-plan" role="tab" aria-selected="true" aria-controls="panel-plan">Тренировки</button>
+      <button type="button" id="tab-settings" role="tab" aria-selected="false" aria-controls="panel-settings">Настройки</button>
+    </div>
+
+    <section class="panel" id="panel-plan" role="tabpanel">
+      <label for="volume">Недельный объём, км</label>
+      <input id="volume" type="text" inputmode="numeric" autocomplete="off" placeholder="40">
+      <p class="message" id="message">Введите целые километры.</p>
+      <div class="cards" id="cards"></div>
+      <div class="totals" id="totals"></div>
+    </section>
+
+    <section class="panel settings" id="panel-settings" role="tabpanel" hidden>
+      <div>
+        <label for="pace-intervals">Интервалы</label>
+        <input id="pace-intervals" type="text" autocomplete="off">
+      </div>
+      <div>
+        <label for="pace-tempo">Темповая</label>
+        <input id="pace-tempo" type="text" autocomplete="off">
+      </div>
+      <div>
+        <label for="pace-easy">Разминка, заминка и среда</label>
+        <input id="pace-easy" type="text" autocomplete="off">
+      </div>
+      <div>
+        <label for="pace-long">Длительная</label>
+        <input id="pace-long" type="text" autocomplete="off">
+      </div>
+      <button type="button" id="reset-paces">Вернуть как было</button>
+    </section>
+  </div>
+
+  <script>
+    const DEFAULT_PACES = {
+      intervals: "4:35",
+      tempo: "4:50",
+      easy: "6:00–6:20",
+      long: "5:30–5:50"
+    };
+    const PACE_STORAGE = "runweek.paces";
+    const DIST_SVG =
+      '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">' +
+      '<path d="M5.5 18.5c2.2-1.1 3.6-3.4 3.6-6.1V6.8c0-1.5 1.2-2.8 2.8-2.8h0c1.5 0 2.8 1.2 2.8 2.8v1.2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '<circle cx="14.7" cy="11.2" r="2.1" fill="none" stroke="currentColor" stroke-width="1.7"/>' +
+      '<path d="M14.7 13.3v5.2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>' +
+      "</svg>";
+    const CLOCK_SVG =
+      '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">' +
+      '<circle cx="12" cy="12" r="8.25" fill="none" stroke="currentColor" stroke-width="1.7"/>' +
+      '<path d="M12 8v4.4l2.8 1.7" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>' +
+      "</svg>";
+
+    const volumeInput = document.getElementById("volume");
+    const messageEl = document.getElementById("message");
+    const cardsEl = document.getElementById("cards");
+    const totalsEl = document.getElementById("totals");
+    const paceInputs = {
+      intervals: document.getElementById("pace-intervals"),
+      tempo: document.getElementById("pace-tempo"),
+      easy: document.getElementById("pace-easy"),
+      long: document.getElementById("pace-long")
+    };
+
+    function roundHalfUp500(meters) {
+      const rem = meters % 500;
+      if (rem === 0) return meters;
+      const base = meters - rem;
+      return rem >= 250 ? base + 500 : base;
+    }
+
+    function warmupMeters(km) {
+      return Math.max(2000, roundHalfUp500(km * 50));
+    }
+
+    function packIntervals(distance) {
+      const twos = Math.floor(distance / 2000);
+      const rem = distance - twos * 2000;
+      if (rem === 0) return { c20: twos, c15: 0, c25: 0 };
+      if (rem === 1500) return { c20: twos, c15: 1, c25: 0 };
+      if (rem === 500) {
+        if (twos < 1) return null;
+        return { c20: twos - 1, c15: 0, c25: 1 };
+      }
+      if (rem === 1000) {
+        if (twos < 1) return null;
+        return { c20: twos - 1, c15: 2, c25: 0 };
+      }
+      return null;
+    }
+
+    function packScore(pack) {
+      const segs = pack.c20 + pack.c15 + pack.c25;
+      return [pack.c20, -segs, pack.c25];
+    }
+
+    function betterSplit(next, current) {
+      const devNext = Math.abs(5 * next.intervals - 3 * next.intensity);
+      const devCurrent = Math.abs(5 * current.intervals - 3 * current.intensity);
+      const left = devNext * current.intensity;
+      const right = devCurrent * next.intensity;
+      if (left !== right) return left < right;
+      const a = packScore(next.pack);
+      const b = packScore(current.pack);
+      for (let i = 0; i < a.length; i += 1) {
+        if (a[i] !== b[i]) return a[i] > b[i];
+      }
+      return false;
+    }
+
+    function buildWeek(km) {
+      const total = km * 1000;
+      const minExact = 300 * km;
+      const maxExact = 320 * km;
+      const minI = Math.ceil(minExact / 500) * 500;
+      const maxI = Math.floor(maxExact / 500) * 500;
+      let best = null;
+
+      for (let intensity = minI; intensity <= maxI; intensity += 500) {
+        const tempoMax = Math.floor((intensity - 1) / 2000) * 1000;
+        for (let tempo = 5000; tempo <= tempoMax; tempo += 1000) {
+          const intervals = intensity - tempo;
+          if (intervals <= tempo) continue;
+          const pack = packIntervals(intervals);
+          if (!pack) continue;
+          const candidate = { intensity, tempo, intervals, pack };
+          if (!best || betterSplit(candidate, best)) best = candidate;
+        }
+      }
+
+      if (!best) return null;
+
+      const warm = warmupMeters(km);
+      const zone2 = total - best.intensity;
+      const cap = Math.floor((300 * km) / 500) * 500;
+      const room = zone2 - 4 * warm - 1000;
+      if (room < 500) return null;
+      const longRun = Math.min(cap, Math.floor(room / 500) * 500);
+      if (longRun < 500) return null;
+      const recovery = zone2 - 4 * warm - longRun;
+      if (recovery < 1000) return null;
+
+      return {
+        km,
+        total,
+        warm,
+        intensity: best.intensity,
+        tempo: best.tempo,
+        intervals: best.intervals,
+        pack: best.pack,
+        longRun,
+        recovery
+      };
+    }
+
+    let cachedMinimum = null;
+    function minimumVolume() {
+      if (cachedMinimum !== null) return cachedMinimum;
+      for (let km = 1; km <= 80; km += 1) {
+        if (buildWeek(km)) {
+          cachedMinimum = km;
+          return km;
+        }
+      }
+      cachedMinimum = null;
+      return null;
+    }
+
+    function formatKm(meters) {
+      const whole = Math.floor(meters / 1000);
+      return meters % 1000 === 0 ? String(whole) : whole + ",5";
+    }
+
+    function formatPercent(part, total) {
+      const hundredths = Math.round((part * 10000) / total);
+      const whole = Math.floor(hundredths / 100);
+      const frac = hundredths % 100;
+      if (frac === 0) return whole + "%";
+      if (frac % 10 === 0) return whole + "," + frac / 10 + "%";
+      return whole + "," + String(frac).padStart(2, "0") + "%";
+    }
+
+    function parseOnePace(text) {
+      const match = String(text).trim().match(/^(\d{1,2}):(\d{2})$/);
+      if (!match) return null;
+      return Number(match[1]) * 60 + Number(match[2]);
+    }
+
+    function paceSecondsPerKm(text) {
+      const cleaned = String(text).replace(/\s+/g, "");
+      const parts = cleaned.split(/[–—-]/).filter(Boolean);
+      const values = parts.map(parseOnePace).filter((v) => v !== null);
+      if (!values.length) return null;
+      if (values.length === 1) return values[0];
+      return (values[0] + values[1]) / 2;
+    }
+
+    function secondsFor(meters, paceText) {
+      const secPerKm = paceSecondsPerKm(paceText);
+      if (secPerKm === null) return 0;
+      return (meters / 1000) * secPerKm;
+    }
+
+    function formatMinutes(totalSeconds) {
+      const minutes = Math.round(totalSeconds / 60);
+      return minutes + " мин";
+    }
+
+    function formatClock(totalSeconds) {
+      const minutes = Math.round(totalSeconds / 60);
+      const hours = Math.floor(minutes / 60);
+      const rem = minutes % 60;
+      if (hours === 0) return rem + " мин";
+      if (rem === 0) return hours + " ч";
+      return hours + " ч " + rem + " мин";
+    }
+
+    function paces() {
+      const stored = {};
+      for (const key of Object.keys(DEFAULT_PACES)) {
+        const value = paceInputs[key].value.trim();
+        stored[key] = value || DEFAULT_PACES[key];
+      }
+      return stored;
+    }
+
+    function intervalPieces(pack) {
+      const bits = [];
+      if (pack.c20) bits.push({ count: pack.c20, meters: 2000 });
+      if (pack.c25) bits.push({ count: pack.c25, meters: 2500 });
+      if (pack.c15) bits.push({ count: pack.c15, meters: 1500 });
+      return bits;
+    }
+
+    function intervalReps(pack) {
+      return pack.c20 + pack.c25 + pack.c15;
+    }
+
+    function formatDistLabel(count, meters) {
+      const base = formatKm(meters) + " км";
+      return count > 1 ? count + "×" + base : base;
+    }
+
+    function makeSeg(zone, text) {
+      const seg = document.createElement("span");
+      seg.className = "seg";
+      const dot = document.createElement("span");
+      dot.className = "dot " + (zone === "intense" ? "dot-intense" : "dot-z2");
+      const label = document.createElement("span");
+      label.textContent = text;
+      seg.append(dot, label);
+      return seg;
+    }
+
+    function makePlus() {
+      const plus = document.createElement("span");
+      plus.className = "plus";
+      plus.textContent = "+";
+      plus.setAttribute("aria-hidden", "true");
+      return plus;
+    }
+
+    function fillStrip(strip, items) {
+      items.forEach((item, index) => {
+        if (index > 0) strip.append(makePlus());
+        strip.append(makeSeg(item.zone, item.text));
+      });
+    }
+
+    function workoutViews(week, pace) {
+      const warm = week.warm;
+      const packBits = intervalPieces(week.pack);
+      const intervalPaceItems = packBits.map(() => ({
+        zone: "intense",
+        text: pace.intervals
+      }));
+      const intervalDistItems = packBits.map((bit) => ({
+        zone: "intense",
+        text: formatDistLabel(bit.count, bit.meters)
+      }));
+
+      const tuesdaySeconds =
+        secondsFor(warm, pace.easy) +
+        secondsFor(week.intervals, pace.intervals) +
+        secondsFor(warm, pace.easy);
+      const wednesdaySeconds = secondsFor(week.recovery, pace.easy);
+      const thursdaySeconds =
+        secondsFor(warm, pace.easy) +
+        secondsFor(week.tempo, pace.tempo) +
+        secondsFor(warm, pace.easy);
+      const sundaySeconds = secondsFor(week.longRun, pace.long);
+
+      return [
+        {
+          day: "Вторник",
+          title: "Интервалы",
+          meters: warm + week.intervals + warm,
+          seconds: tuesdaySeconds,
+          paceItems: [
+            { zone: "z2", text: pace.easy },
+            ...intervalPaceItems,
+            { zone: "z2", text: pace.easy }
+          ],
+          distItems: [
+            { zone: "z2", text: formatDistLabel(1, warm) },
+            ...intervalDistItems,
+            { zone: "z2", text: formatDistLabel(1, warm) }
+          ],
+          rest: intervalReps(week.pack) > 1 ? "Перерыв 90 секунд между отрезками" : null
+        },
+        {
+          day: "Среда",
+          title: "Восстановительная",
+          meters: week.recovery,
+          seconds: wednesdaySeconds,
+          paceItems: [{ zone: "z2", text: pace.easy }],
+          distItems: [{ zone: "z2", text: formatDistLabel(1, week.recovery) }],
+          rest: null
+        },
+        {
+          day: "Четверг",
+          title: "Темповая",
+          meters: warm + week.tempo + warm,
+          seconds: thursdaySeconds,
+          paceItems: [
+            { zone: "z2", text: pace.easy },
+            { zone: "intense", text: pace.tempo },
+            { zone: "z2", text: pace.easy }
+          ],
+          distItems: [
+            { zone: "z2", text: formatDistLabel(1, warm) },
+            { zone: "intense", text: formatDistLabel(1, week.tempo) },
+            { zone: "z2", text: formatDistLabel(1, warm) }
+          ],
+          rest: null
+        },
+        {
+          day: "Воскресенье",
+          title: "Длительная",
+          meters: week.longRun,
+          seconds: sundaySeconds,
+          paceItems: [{ zone: "z2", text: pace.long }],
+          distItems: [{ zone: "z2", text: formatDistLabel(1, week.longRun) }],
+          rest: null
+        }
+      ];
+    }
+
+    function clearPlan() {
+      cardsEl.replaceChildren();
+      totalsEl.replaceChildren();
+    }
+
+    function showMessage(text, isError) {
+      messageEl.textContent = text;
+      messageEl.classList.toggle("error", Boolean(isError));
+    }
+
+    function addCard(view) {
+      const card = document.createElement("article");
+      card.className = "card";
+
+      const dayEl = document.createElement("p");
+      dayEl.className = "day";
+      dayEl.textContent = view.day;
+      const titleEl = document.createElement("h2");
+      titleEl.textContent = view.title;
+
+      const paceStrip = document.createElement("div");
+      paceStrip.className = "strip strip-pace";
+      fillStrip(paceStrip, view.paceItems);
+
+      const distStrip = document.createElement("div");
+      distStrip.className = "strip strip-dist";
+      fillStrip(distStrip, view.distItems);
+
+      card.append(dayEl, titleEl, paceStrip, distStrip);
+
+      if (view.rest) {
+        const rest = document.createElement("p");
+        rest.className = "rest";
+        rest.textContent = view.rest;
+        card.append(rest);
+      }
+
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      const volume = document.createElement("span");
+      volume.className = "meta-item";
+      volume.innerHTML = DIST_SVG + "<span>" + formatDistLabel(1, view.meters) + "</span>";
+      const duration = document.createElement("span");
+      duration.className = "meta-item";
+      duration.innerHTML = CLOCK_SVG + "<span>" + formatMinutes(view.seconds) + "</span>";
+      meta.append(volume, duration);
+      card.append(meta);
+
+      cardsEl.append(card);
+    }
+
+    function addTotalRow(label, value, zone) {
+      const row = document.createElement("p");
+      row.className = "total-row";
+      if (zone) {
+        const dot = document.createElement("span");
+        dot.className = "dot " + (zone === "intense" ? "dot-intense" : "dot-z2");
+        row.append(dot);
+      }
+      const labelEl = document.createElement("span");
+      labelEl.className = "label";
+      labelEl.textContent = label;
+      const valueEl = document.createElement("span");
+      valueEl.className = "value";
+      valueEl.textContent = value;
+      row.append(labelEl, valueEl);
+      totalsEl.append(row);
+    }
+
+    function render() {
+      const raw = volumeInput.value.trim().replace(",", ".");
+      clearPlan();
+      if (!/^\d+$/.test(raw) || Number(raw) <= 0) {
+        showMessage("Введите целые километры.", raw.length > 0);
+        return;
+      }
+
+      const km = Number(raw);
+      const week = buildWeek(km);
+      if (!week) {
+        const min = minimumVolume();
+        showMessage(
+          min
+            ? "Минимальный объём для этих правил — " + min + " км."
+            : "Для этого объёма неделя не собирается.",
+          true
+        );
+        return;
+      }
+
+      const pace = paces();
+      const views = workoutViews(week, pace);
+      showMessage("", false);
+      views.forEach(addCard);
+
+      const totalSeconds = views.reduce((sum, view) => sum + view.seconds, 0);
+      addTotalRow("Интенсив", formatPercent(week.intensity, week.total), "intense");
+      addTotalRow("Лонг", formatPercent(week.longRun, week.total), "z2");
+      addTotalRow("Время", formatClock(totalSeconds));
+    }
+
+    function loadPaces() {
+      let saved = {};
+      try {
+        saved = JSON.parse(localStorage.getItem(PACE_STORAGE) || "{}");
+      } catch (err) {
+        saved = {};
+      }
+      for (const key of Object.keys(DEFAULT_PACES)) {
+        paceInputs[key].value =
+          typeof saved[key] === "string" && saved[key].trim()
+            ? saved[key]
+            : DEFAULT_PACES[key];
+      }
+    }
+
+    function savePaces() {
+      const payload = {};
+      for (const key of Object.keys(DEFAULT_PACES)) {
+        payload[key] = paceInputs[key].value;
+      }
+      try {
+        localStorage.setItem(PACE_STORAGE, JSON.stringify(payload));
+      } catch (err) {
+        /* file pages can block storage; the fields still drive the week */
+      }
+      render();
+    }
+
+    function selectTab(name) {
+      const plan = name === "plan";
+      document.getElementById("tab-plan").setAttribute("aria-selected", String(plan));
+      document.getElementById("tab-settings").setAttribute("aria-selected", String(!plan));
+      document.getElementById("panel-plan").hidden = !plan;
+      document.getElementById("panel-settings").hidden = plan;
+    }
+
+    document.getElementById("tab-plan").addEventListener("click", () => selectTab("plan"));
+    document.getElementById("tab-settings").addEventListener("click", () => selectTab("settings"));
+    volumeInput.addEventListener("input", render);
+    for (const input of Object.values(paceInputs)) {
+      input.addEventListener("input", savePaces);
+    }
+    document.getElementById("reset-paces").addEventListener("click", () => {
+      for (const key of Object.keys(DEFAULT_PACES)) {
+        paceInputs[key].value = DEFAULT_PACES[key];
+      }
+      savePaces();
+    });
+
+    loadPaces();
+    render();
+  </script>
+</body>
+</html>
